@@ -1,0 +1,68 @@
+# 51115122
+
+第1題
+
+## 解題說明
+
+本題要求實現一個遞迴函數來計算 Ackermann 的函數 $A(m, n)$
+
+### 解題策略
+
+如果  m = 0  時，則   A(m, n )=n + 1 。
+   
+如果  n = 0  時，則  A(m, n )=A(m - 1, 1)。
+
+否則  A(m, n )=A(m - 1, A(m, n - 1))。
+
+直接使用遞迴實現。
+
+## 程式實作
+
+以下為主要程式碼：
+
+```cpp
+#include <iostream>
+using namespace std;
+int ackermann(int m, int n) {
+    if (m==0) return n+1;
+    else if (n==0) return ackermann(m-1,1);
+    else return ackermann(m-1, ackermann(m,n-1));
+}
+int main() {
+    int result=ackermann(2,2);
+    cout<<result<<'\n'; 
+    return 0;
+}
+```
+
+## 效能分析
+1. 時間複雜度：程式的時間複雜度為 $O(1)$。
+2. 空間複雜度：空間複雜度為 $O(A(m, n))$。
+
+## 測試與驗證
+
+### 測試案例
+
+| 測試案例 | 輸入參數 $(m,n)$ | 預期輸出 | 實際輸出 |
+|----------|--------------|----------|----------|
+| 測試一   | $(0,0)$      | 1        | 1        |
+| 測試二   | $(0,1)$      | 2        | 2        |
+| 測試三   | $(1,1)$      | 3        | 3        |
+| 測試四   | $(2,2)$      | 7        | 7        |
+| 測試五   | $(3,1)$     | 13       | 13       |
+
+### 編譯與執行指令
+
+```shell
+$ g++ -std=c++17 -o ackermann_recursive ackermann_recursive.cpp
+$ ./ackermann_recursive
+7
+```
+
+### 結論
+ 遞迴函數能正確計算Ackermann函數值，符合定義。 
+
+## 心得討論
+
+### 選擇遞迴的原因
+遞迴直接反映Ackermann函數的數學定義，容易理解和實現。
