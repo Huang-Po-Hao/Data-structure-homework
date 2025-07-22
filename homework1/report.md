@@ -51,14 +51,6 @@ int main() {
 | 測試四   | $(2,2)$      | 7        | 7        |
 | 測試五   | $(3,1)$     | 13       | 13       |
 
-### 編譯與執行指令
-
-```shell
-$ g++ -std=c++17 -o ackermann_recursive ackermann_recursive.cpp
-$ ./ackermann_recursive
-7
-```
-
 ### 結論
  遞迴函數能正確計算Ackermann函數值，符合定義。 
 
