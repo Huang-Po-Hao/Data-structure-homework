@@ -4,33 +4,30 @@
 
 ## 解題說明
 
-題目要求實作一個Polynomial類別的ADT並實作其私有資料成員，並編寫C++函數來輸入和輸出多項式。輸入和輸出函數應分別多載<<和>>運算子。
+實作一個Polynomial類別的ADT並實作其私有資料成員，並編寫C++函數來輸入和輸出多項式。輸入和輸出函數應分別多載<<和>>運算子。
 
 ### 解題策略
 
 1. Polynomial 類別實作:
    
-   根據ADT，實作Polynomial類別的必要功能，例如建構函數、複製建構函數、析構函數，以及其他操作(如加法、乘法）。
+   使用 Term 類別儲存多項式項，包含係數 (float coef) 和指數 (int exp)。
     
-   假設私有資料成員包含多項式的係數陣列和最高次數，例如 double* coefficients 和 int degree，用來儲存多項式的係數和最高次數。
+   Polynomial 類別的私有資料成員包括：
+   - Term* termArray: 動態陣列，儲存多項式項。
+   - int capacity: 陣列容量。
+   - int terms: 當前項數。
+   
+   提供 newTerm 函數動態新增項，容量不足時自動擴展陣列。
+
+   實現建構函數、析構函數和自定義 copy 函數管理記憶體。
    
  2. 多載 << 和 >> 運算子:
 
-    多載輸出運算子 << 以格式化輸出多項式，例如以 ax^n + bx^(n-1) + ... + c 的形式。
+    operator>> 使用 std::getline 和 std::istringstream 讀取單行輸入，解析係數和指數對，直到按 Enter 結束。
 
-    多載輸入運算子 >> 以從輸入流讀取多項式的次數和係數。
+    operator<< 按指數降序排列項，略過零係數，處理正負號，格式化輸出（如 ax^b + cx^d）。
 
-    確保輸入和輸出格式清晰且符合一般多項式表示法。
-
-3. 假設的資料結構:
-   
-   - 私有資料成員包含：
-     
-       double* coefficients: 動態陣列，儲存各次項的係數。
-     
-       int degree: 多項式的最高次數。
-   - 重點在於輸入和輸出功能的實作。
-
+    特殊處理：指數為 0 不輸出 x，指數為 1 省略 ^1，係數為 1 或 -1 省略係數值。
 ## 程式實作
 
 以下為主要程式碼：
@@ -42,9 +39,7 @@
 #include <cmath>
 #include <sstream>
 #include <string>
-
-class Polynomial; // 前向宣告
-
+class Polynomial; 
 class Term {
     friend class Polynomial;
     friend std::ostream& operator<<(std::ostream& os, const Term& term);
@@ -56,7 +51,6 @@ public:
     float getCoef() const { return coef; }
     int getExp() const { return exp; }
 };
-
 class Polynomial {
     friend std::ostream& operator<<(std::ostream& os, const Polynomial& poly);
     friend std::istream& operator>>(std::istream& is, Polynomial& poly);
@@ -95,7 +89,6 @@ public:
         delete[] termArray;
     }
 };
-
 std::istream& operator>>(std::istream& is, Term& term) {
     is >> term.coef >> term.exp;
     return is;
@@ -104,7 +97,6 @@ std::ostream& operator<<(std::ostream& os, const Term& term) {
     os << term.coef << "x^" << term.exp;
     return os;
 }
-
 std::istream& operator>>(std::istream& is, Polynomial& poly) {
     poly.terms = 0;
     std::cout << "Enter terms (coef exp), press Enter to stop:" << std::endl;
@@ -124,7 +116,6 @@ std::istream& operator>>(std::istream& is, Polynomial& poly) {
     }
     return is;
 }
-
 std::ostream& operator<<(std::ostream& os, const Polynomial& poly) {
     std::cout << "Number of terms: " << poly.terms << std::endl;
     std::vector<Term> termsVec(poly.termArray, poly.termArray + poly.terms);
@@ -169,7 +160,6 @@ std::ostream& operator<<(std::ostream& os, const Polynomial& poly) {
     }
     return os;
 }
-
 int main() {
     Polynomial polyA;
     std::cin >> polyA;
@@ -189,14 +179,24 @@ int main() {
 
 | 測試案例 | 輸入參數(係數, 指數) | 預期輸出 | 實際輸出 |
 |----------|--------------|----------|----------|
-| 測試一   | 2  0          | 2            | 2            |
-| 測試二   | 1  1      | x           | x           |
-| 測試三   | -1  2  2  1     | -x^2 + 2x    | -x^2 + 2x     |
+| 測試一   | 2  0               | 2                   | 2                   |
+| 測試二   | 1  1               | x                   | x                   |
+| 測試三   | -1  2  2  1        | -x^2 + 2x           | -x^2 + 2x           |
 | 測試四   | -1 3 2 2 -1 1 3 0  | -x^3 + 2x^2 - x + 3 | -x^3 + 2x^2 - x + 3 |
-| 測試五   | 直接按 Enter     | 0            | 0            |
+| 測試五   | 直接按 Enter        | 0                   | 0                  |
 
 ### 結論
-- 程式正確實現了Polynomial類別，並根據私有資料成員（係數陣列和次數）進行設計。
-- 重載的 << 和 >> 運算子能正確處理多項式的輸入和輸出，格式清晰且符合數學表示法。
-- 測試案例涵蓋了常數項、線性多項式、高次多項式以及全零多項式，驗證了程式的正確性。
+- 單項多項式（測試一、測試二）。
+- 負係數和多項（測試三、測試四）。
+- 空多項式（測試五）。
+- 輸入以按 Enter 結束，解析單行輸入，排序確保指數降序，略過零係數項，正負號格式正確，係數 1 或 -1 在非零指數時省略。
 
+## 心得討論
+
+ **設計考量:**
+   - 動態陣列 termArray 與 newTerm 函數支援任意項數，自動擴展確保記憶體靈活性。
+   - 輸出使用 std::vector 和 std::sort 將指數降冪排列，符合標準多項式表示。
+   - 處理特殊情況（如零係數、指數 0 或 1、係數 1 或 -1）確保輸出格式正確。
+   - 調試資訊（如 Resized array to capacity 和 Added term）便於追蹤執行過程。
+     
+透過實作 Polynomial 類別和運算子多載，展示了物件導向程式設計、動態記憶體管理和 C++ 流操作的應用。
