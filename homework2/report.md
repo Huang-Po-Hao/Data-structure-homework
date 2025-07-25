@@ -37,71 +37,143 @@
 
 ```cpp
 #include <iostream>
+#include <vector>
+#include <algorithm>
 #include <cmath>
-using namespace std;
-class Polynomial {
+#include <sstream>
+#include <string>
+
+class Polynomial; // 前向宣告
+
+class Term {
+    friend class Polynomial;
+    friend std::ostream& operator<<(std::ostream& os, const Term& term);
+    friend std::istream& operator>>(std::istream& is, Term& term);
 private:
-    double* coefficients; 
-    int degree;         
+    float coef;
+    int exp;
 public:
-    Polynomial(int deg = 0) : degree(deg) {
-        coefficients = new double[deg + 1];
-        for (int i = 0; i <= deg; i++) {
-            coefficients[i] = 0.0;
+    float getCoef() const { return coef; }
+    int getExp() const { return exp; }
+};
+
+class Polynomial {
+    friend std::ostream& operator<<(std::ostream& os, const Polynomial& poly);
+    friend std::istream& operator>>(std::istream& is, Polynomial& poly);
+private:
+    Term* termArray;
+    int capacity;
+    int terms;
+public:
+    void copy(Term* target, Term* source, int size) {
+        for (int i = 0; i < size; ++i) {
+            target[i] = source[i];
         }
     }
-    Polynomial(const Polynomial& other) : degree(other.degree) {
-        coefficients = new double[degree + 1];
-        for (int i = 0; i <= degree; i++) {
-            coefficients[i] = other.coefficients[i];
+    void newTerm(float coef, int exp) {
+        if (terms >= capacity) {
+            capacity *= 2;
+            Term* newArray = new Term[capacity];
+            copy(newArray, termArray, terms);
+            delete[] termArray;
+            termArray = newArray;
+            std::cout << "Resized array to capacity: " << capacity << std::endl;
         }
+        termArray[terms].coef = coef;
+        termArray[terms].exp = exp;
+        std::cout << "Added term: " << coef << "x^" << exp << std::endl;
+        terms++;
+    }
+    Polynomial(int initialCapacity = 2) : terms(0) {
+        if (initialCapacity <= 0) {
+            throw "Invalid capacity";
+        }
+        capacity = initialCapacity;
+        termArray = new Term[capacity];
     }
     ~Polynomial() {
-        delete[] coefficients;
-    }
-    friend istream& operator>>(istream& in, Polynomial& poly) {
-        cout << "Enter degree of polynomial: ";
-        in >> poly.degree;
-        delete[] poly.coefficients; 
-        poly.coefficients = new double[poly.degree + 1];
-        cout << "Enter coefficients from highest to lowest degree: ";
-        for (int i = poly.degree; i >= 0; i--) {
-            in >> poly.coefficients[i];
-        }
-        return in;
-    }
-    friend ostream& operator<<(ostream& out, const Polynomial& poly) {
-        bool first = true;
-        for (int i = poly.degree; i >= 0; i--) {
-            if (poly.coefficients[i] != 0) {
-                if (!first && poly.coefficients[i] > 0) {
-                    out << " + ";
-                }
-                if (poly.coefficients[i] < 0) {
-                    out << " - ";
-                }
-                if (abs(poly.coefficients[i]) != 1 || i == 0) {
-                    out << abs(poly.coefficients[i]);
-                }
-                if (i > 0) {
-                    out << "x";
-                    if (i > 1) {
-                        out << "^" << i;
-                    }
-                }
-                first = false;
-            }
-        }
-        if (first) { 
-            out << "0";
-        }
-        return out;
+        delete[] termArray;
     }
 };
+
+std::istream& operator>>(std::istream& is, Term& term) {
+    is >> term.coef >> term.exp;
+    return is;
+}
+std::ostream& operator<<(std::ostream& os, const Term& term) {
+    os << term.coef << "x^" << term.exp;
+    return os;
+}
+
+std::istream& operator>>(std::istream& is, Polynomial& poly) {
+    poly.terms = 0;
+    std::cout << "Enter terms (coef exp), press Enter to stop:" << std::endl;
+    std::string line;
+    std::getline(is, line);
+    std::istringstream iss(line);
+    float coef;
+    int exp;
+    while (iss >> coef >> exp) {
+        std::cout << "Read term: " << coef << "x^" << exp << std::endl;
+        poly.newTerm(coef, exp);
+    }
+    if (iss.eof()) {
+        std::cout << "Reached end of input line" << std::endl;
+    } else if (iss.fail() && !iss.eof()) {
+        std::cout << "Input stream failed" << std::endl;
+    }
+    return is;
+}
+
+std::ostream& operator<<(std::ostream& os, const Polynomial& poly) {
+    std::cout << "Number of terms: " << poly.terms << std::endl;
+    std::vector<Term> termsVec(poly.termArray, poly.termArray + poly.terms);
+    std::sort(termsVec.begin(), termsVec.end(), [](const Term& a, const Term& b) {
+        return a.getExp() > b.getExp();
+    });
+    bool first = true;
+    for (const auto& term : termsVec) {
+        float coef = term.getCoef();
+        if (coef == 0) continue;
+        if (first) {
+            first = false;
+            if (coef == 1 && term.getExp() != 0) {
+                os << (coef < 0 ? "-" : "");
+            } else if (coef == -1 && term.getExp() != 0) {
+                os << "-";
+            } else {
+                os << (coef < 0 ? "-" : "") << std::abs(coef);
+            }
+            int exp = term.getExp();
+            if (exp > 0) {
+                os << "x";
+                if (exp > 1) os << "^" << exp;
+            }
+        } else {
+            if (coef > 0) {
+                os << " + ";
+                if (coef != 1 || term.getExp() == 0) os << coef;
+            } else {
+                os << " - ";
+                if (coef != -1 || term.getExp() == 0) os << -coef;
+            }
+            int exp = term.getExp();
+            if (exp > 0) {
+                os << "x";
+                if (exp > 1) os << "^" << exp;
+            }
+        }
+    }
+    if (first) {
+        os << "0";
+    }
+    return os;
+}
+
 int main() {
-    Polynomial poly;
-    cin >> poly; 
-    cout << "Polynomial: " << poly << endl; 
+    Polynomial polyA;
+    std::cin >> polyA;
+    std::cout << "Polynomial A: " << polyA << std::endl;
     return 0;
 }
 ```
@@ -115,13 +187,13 @@ int main() {
 
 ### 測試案例
 
-| 測試案例 | 輸入參數(次數, 係數) | 預期輸出 | 實際輸出 |
+| 測試案例 | 輸入參數(係數, 指數) | 預期輸出 | 實際輸出 |
 |----------|--------------|----------|----------|
-| 測試一   | 次數: 0, 係數: [2]          | 2            | 2            |
-| 測試二   | 次數: 1, 係數: [3,0]        | 3x           | 3x           |
-| 測試三   | 次數: 2, 係數: [1,-2,0]     | x^2 - 2x     | x^2 - 2x     |
-| 測試四   | 次數: 3, 係數: [2,0,-1,3]   | 2x^3 - x + 3 | 2x^3 - x + 3 |
-| 測試五   | 次數: 2, 係數: [0,0,0]      | 0            | 0            |
+| 測試一   | 2  0          | 2            | 2            |
+| 測試二   | 1  1      | x           | x           |
+| 測試三   | -1  2  2  1     | -x^2 + 2x    | -x^2 + 2x     |
+| 測試四   | -1 3 2 2 -1 1 3 0  | -x^3 + 2x^2 - x + 3 | -x^3 + 2x^2 - x + 3 |
+| 測試五   | 直接按 Enter     | 0            | 0            |
 
 ### 結論
 - 程式正確實現了Polynomial類別，並根據私有資料成員（係數陣列和次數）進行設計。
