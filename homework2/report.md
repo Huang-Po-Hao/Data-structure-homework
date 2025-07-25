@@ -8,8 +8,10 @@
 
 ### 解題策略
 
-1. 實作Polynomial 類別的必要功能，例如建構函數、加法、乘法等以及其他操作。
-2. 假設多項式以係數陣列或動態陣列表示，例如 double* coefficients 和 int degree，用來儲存多項式的係數和最高次數。
+1. Polynomial 類別實現:
+   - 根據 ADT，實現 Polynomial 類別的必要功能，例如建構函數、複製建構函數、析構函數，以及其他可能的操作（如加法、乘法，若 ADT 有要求）。
+   - 假設私有資料成員包含多項式的係數陣列和最高次數，例如 double* coefficients 和 int degree，用來儲存多項式的係數和最高次數。
+4. 假設多項式以係數陣列或動態陣列表示，例如 double* coefficients 和 int degree，用來儲存多項式的係數和最高次數。
 
 ## 程式實作
 
