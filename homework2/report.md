@@ -35,4 +35,80 @@
 
 以下為主要程式碼：
 
+```cpp
+#include <iostream>
+#include <cmath>
+using namespace std;
+class Polynomial {
+private:
+    double* coefficients; 
+    int degree;         
+public:
+    Polynomial(int deg = 0) : degree(deg) {
+        coefficients = new double[deg + 1];
+        for (int i = 0; i <= deg; i++) {
+            coefficients[i] = 0.0;
+        }
+    }
+    Polynomial(const Polynomial& other) : degree(other.degree) {
+        coefficients = new double[degree + 1];
+        for (int i = 0; i <= degree; i++) {
+            coefficients[i] = other.coefficients[i];
+        }
+    }
+    ~Polynomial() {
+        delete[] coefficients;
+    }
+    friend istream& operator>>(istream& in, Polynomial& poly) {
+        cout << "Enter degree of polynomial: ";
+        in >> poly.degree;
+        delete[] poly.coefficients; 
+        poly.coefficients = new double[poly.degree + 1];
+        cout << "Enter coefficients from highest to lowest degree: ";
+        for (int i = poly.degree; i >= 0; i--) {
+            in >> poly.coefficients[i];
+        }
+        return in;
+    }
+    friend ostream& operator<<(ostream& out, const Polynomial& poly) {
+        bool first = true;
+        for (int i = poly.degree; i >= 0; i--) {
+            if (poly.coefficients[i] != 0) {
+                if (!first && poly.coefficients[i] > 0) {
+                    out << " + ";
+                }
+                if (poly.coefficients[i] < 0) {
+                    out << " - ";
+                }
+                if (abs(poly.coefficients[i]) != 1 || i == 0) {
+                    out << abs(poly.coefficients[i]);
+                }
+                if (i > 0) {
+                    out << "x";
+                    if (i > 1) {
+                        out << "^" << i;
+                    }
+                }
+                first = false;
+            }
+        }
+        if (first) { 
+            out << "0";
+        }
+        return out;
+    }
+};
+int main() {
+    Polynomial poly;
+    cin >> poly; 
+    cout << "Polynomial: " << poly << endl; 
+    return 0;
+}
+```
 
+## 效能分析
+
+1. 時間複雜度： $O(\ n)$
+2. 空間複雜度：
+
+   
