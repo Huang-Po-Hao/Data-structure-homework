@@ -7,12 +7,10 @@ class Term {
     int exp;
     Term* link;
 };
-
 class Polynomial {
 private:
     Term* header;
     Term* available;
-
     Term* allocateTerm() {
         if (available) {
             Term* temp = available;
@@ -21,41 +19,40 @@ private:
         }
         return new Term;
     }
-
     void deallocateTerm(Term* term) {
         term->link = available;
         available = term;
     }
-
 public:
     Polynomial() {
         header = new Term;
         header->link = header;
         available = nullptr;
     }
-
-    ~Polynomial() { 
+    ~Polynomial() {
         Term* current = header->link;
         while (current != header) {
             Term* temp = current;
             current = current->link;
-            deallocateTerm(temp); 
+            deallocateTerm(temp);
         }
         delete header;
     }
-
     friend std::istream& operator>>(std::istream& is, Polynomial& p) {
         p.~Polynomial();
         p.header = new Term;
         p.header->link = p.header;
         p.available = nullptr;
         int n;
-        is >> n;
+        if (!(is >> n)) return is; 
         if (n == 0) return is;
         Term* current = p.header;
         for (int i = 0; i < n; ++i) {
             int c, e;
-            is >> c >> e;
+            if (!(is >> c >> e)) {
+                std::cerr << "Error: Insufficient data for " << n << " terms." << std::endl;
+                return is;
+            }
             Term* newTerm = p.allocateTerm();
             newTerm->coef = c;
             newTerm->exp = e;
@@ -66,7 +63,6 @@ public:
         current->link = p.header;
         return is;
     }
-
     friend std::ostream& operator<<(std::ostream& os, const Polynomial& p) {
         Term* current = p.header->link;
         bool first = true;
@@ -89,8 +85,6 @@ public:
         if (!hasTerms) os << "0";
         return os;
     }
-
-  
     Polynomial(const Polynomial& a) {
         header = new Term;
         header->link = header;
@@ -107,8 +101,6 @@ public:
         }
         dest->link = header;
     }
-
-    // (d) Assignment Operator
     const Polynomial& operator=(const Polynomial& a) {
         if (this != &a) {
             this->~Polynomial();
@@ -116,8 +108,6 @@ public:
         }
         return *this;
     }
-
- 
     Polynomial operator+(const Polynomial& b) const {
         Polynomial result;
         Term* aPtr = header->link;
@@ -153,8 +143,6 @@ public:
         resultTail->link = result.header;
         return result;
     }
-
-  
     Polynomial operator-(const Polynomial& b) const {
         Polynomial result;
         Term* aPtr = header->link;
@@ -190,8 +178,6 @@ public:
         resultTail->link = result.header;
         return result;
     }
-
-  
     Polynomial operator*(const Polynomial& b) const {
         Polynomial result;
         Term* aPtr = header->link;
@@ -237,8 +223,6 @@ public:
         }
         return result;
     }
-
-
     float Evaluate(float x) const {
         float result = 0;
         Term* current = header->link;
@@ -249,14 +233,15 @@ public:
         return result;
     }
 };
-
 int main() {
     Polynomial p1, p2;
     std::cin >> p1;
+    std::cout << "p1 = " << p1 << std::endl;
     std::cin >> p2;
+    std::cout << "p2 = " << p2 << std::endl;
     std::cout << "p1 + p2 = " << p1 + p2 << std::endl;
     std::cout << "p1 - p2 = " << p1 - p2 << std::endl;
     std::cout << "p1 * p2 = " << p1 * p2 << std::endl;
     std::cout << "p1(2.0) = " << p1.Evaluate(2.0) << std::endl;
     return 0;
-} 
+}
